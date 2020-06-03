@@ -1,0 +1,6 @@
+第一题答：
+（1）官网：https://substrate.io
+（2）recipe网址：https://substrate.dev/recipes/
+（3）rust docs网址：https://substrate.dev/rustdocs
+   (4)tutorial 网址：https://www.substrate.io/tutorials
+（5）Seminar 时间每周二
