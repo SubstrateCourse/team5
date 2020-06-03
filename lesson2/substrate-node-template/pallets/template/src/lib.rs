@@ -49,11 +49,14 @@ decl_event!(
 // The pallet's errors
 decl_error! {
 	pub enum Error for Module<T: Trait> {
-		ProofAlreadyClaimed,
-		NoSuchProof,
-		NotProofOwner,
+        ProofTooLong,
+        ProofAlreadyClaimed,
+        NoSuchProof,
+        NotProofOwner,
 	}
 }
+
+const MAX_PROOF_LEN: usize = 10;
 
 // The pallet's dispatchable functions.
 decl_module! {
@@ -70,6 +73,9 @@ decl_module! {
         /// Allow a user to claim ownership of an unclaimed proof
         #[weight = 10_000]
         fn create_claim(origin, proof: Vec<u8>) {
+
+            ensure!(proof.len() <= MAX_PROOF_LEN, Error::<T>::ProofTooLong);
+
             // Verify that the incoming transaction is signed and store who the
             // caller of this function is.
             let sender = ensure_signed(origin)?;
