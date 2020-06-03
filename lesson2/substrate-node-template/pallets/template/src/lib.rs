@@ -42,6 +42,7 @@ decl_event!(
 	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
         ClaimCreated(AccountId, Vec<u8>),
         ClaimRevoked(AccountId, Vec<u8>),
+        ClaimTransfer(AccountId, AccountId, Vec<u8>),
 	}
 );
 
@@ -106,6 +107,23 @@ decl_module! {
 
             // Emit an event that the claim was erased
             Self::deposit_event(RawEvent::ClaimRevoked(sender, proof));
+        }
+
+        /// Allow the owner to revoke their claim
+        #[weight = 10_000]
+        fn transfer_claim(origin, proof: Vec<u8>, to: T::AccountId) {
+
+            let sender = ensure_signed(origin)?;
+
+            ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+
+            let (owner, block_number) = Proofs::<T>::get(&proof);
+
+            ensure!(sender == owner, Error::<T>::NotProofOwner);
+
+            Proofs::<T>::insert(&proof, (&to, block_number));
+
+            Self::deposit_event(RawEvent::ClaimTransfer(sender, to, proof));
         }
     }
 }
