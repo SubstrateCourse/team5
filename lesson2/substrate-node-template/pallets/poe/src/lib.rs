@@ -1,17 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// A FRAME pallet template with necessary imports
-
-/// Feel free to remove or edit this file as needed.
-/// If you change the name of this file, make sure to update its references in runtime/src/lib.rs
-/// If you remove this file, you can remove those references
-
-/// For more guidance on Substrate FRAME, see the example pallet
-/// https://github.com/paritytech/substrate/blob/master/frame/example/src/lib.rs
 
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, dispatch, ensure, StorageMap};
 use frame_system::{self as system, ensure_signed};
 use sp_std::vec::Vec;
+
 #[cfg(test)]
 mod mock;
 
@@ -31,8 +24,8 @@ decl_storage! {
 	// It is important to update your storage name so that your pallet's
 	// storage items are isolated from other pallets.
 	// ---------------------------------vvvvvvvvvvvvvv
-	trait Store for Module<T: Trait> as TemplateModule {
-		Proofs: map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
+	trait Store for Module<T: Trait> as poeMoudle {
+		Proofs get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
 	}
 }
 
@@ -41,6 +34,7 @@ decl_event!(
 	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
 		ClaimCreated(AccountId, Vec<u8>),
 		ClaimRevoked(AccountId, Vec<u8>),
+		ProofTransferto(AccountId, Vec<u8>),
 	}
 );
 
@@ -50,6 +44,7 @@ decl_error! {
 		ProofAlreadyExist,
 		NoSuchProof,
 		NotProofOwner,
+		TooLongHash,//limit size for proof
 	}
 }
 
@@ -66,16 +61,13 @@ decl_module! {
 		// this is needed only if you are using events in your pallet
 		fn deposit_event() = default;
 
-		/// Just a dummy entry point.
-		/// function that can be called by the external world as an extrinsics call
-		/// takes a parameter of the type `AccountId`, stores it, and emits an event
+		/// This fuction is for claim a proof 
 		#[weight = 10_000]
 		pub fn crate_proof(origin, proof: Vec<u8>) -> dispatch::DispatchResult {
 			// Check it was signed and get the signer. See also: ensure_root and ensure_none
 			let sender = ensure_signed(origin)?;
-
-			// Code to execute when something calls this.
-			// For example: the following line stores the passed in u32 in the storage
+			ensure!(!Proofs::<T>::contains_key(&proof),Error::<T>::ProofAlreadyExist);//ensure there are no same proof alreay exist
+			ensure!(proof.len()<=64, Error::<T>::TooLongHash);//limit size for proof 
 			let current_block = <system::Module<T>>::block_number();
 			Proofs::<T>::insert(&proof, (&sender,current_block));
 			Self::deposit_event(RawEvent::ClaimCreated(sender, proof));
@@ -84,19 +76,38 @@ decl_module! {
 			Ok(())
 		}
 
-		/// Another dummy entry point.
-		/// takes no parameters, attempts to increment storage value, and possibly throws an error
+		/// This function can revoke the proof you have claimed  
 		#[weight = 10_000]
 		pub fn revoke_claim(origin, proof:Vec<u8>) -> dispatch::DispatchResult {
 			// Check it was signed and get the signer. See also: ensure_root and ensure_none
 			let sender = ensure_signed(origin)?;
 
-			ensure!(!Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);//ensure the proof already exist 
 			let (owner, _) = Proofs::<T>::get(&proof);
-			ensure!(sender == owner, Error::<T>::NotProofOwner);
+			ensure!(sender == owner, Error::<T>::NotProofOwner);//ensure only the owner of proof can revoke it
 			Proofs::<T>::remove(&proof);
 			Self::deposit_event(RawEvent::ClaimRevoked(sender,proof));
 			Ok(())
 		}
+
+		///This function can transfer one proof from one account to another
+		#[weight = 10_000]
+		pub fn transfer_proof(origin, proof:Vec<u8>, new_owner:T::AccountId) -> dispatch::DispatchResult{
+			
+			let sender = ensure_signed(origin)?;
+			ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			let (owner, _) = Proofs::<T>::get(&proof);
+			ensure!(sender == owner, Error::<T>::NotProofOwner);
+			Proofs::<T>::insert(&proof, (&new_owner,<system::Module<T>>::block_number()));//cover the old proof cliam
+			Self::deposit_event(RawEvent::ProofTransferto(new_owner,proof));
+
+			
+			
+			Ok(())
+		}
+
+
+
+
 	}
 }
