@@ -37,6 +37,7 @@ decl_event!(
 	{
 		ClaimCreated(AccountId, Vec<u8>),
 		ClaimRevoked(AccountId, Vec<u8>),
+		ClaimTransfered(AccountId, AccountId, Vec<u8>),
 	}
 );
 
@@ -46,6 +47,8 @@ decl_error! {
 		ProofAlreadyExist,
 		ClaimNotExist,
 		NotClaimOwner,
+		TransferToSelf,
+		ClaimOverSize,
 	}
 }
 
@@ -64,6 +67,9 @@ decl_module! {
 
 		#[weight = 0]
 		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
+			// we limit claim length must less equal than 2
+			ensure!(claim.len() <= 2, Error::<T>::ClaimOverSize);
+
 			let sender = ensure_signed(origin)?;
 
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
@@ -78,11 +84,30 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
-			let (owner, block_number) = Proofs::<T>::get(&claim);
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
 			ensure!(owner == sender, Error::<T>::NotClaimOwner);
 
 			Proofs::<T>::remove(&claim);
 			Self::deposit_event(RawEvent::ClaimRevoked(sender, claim));
+			Ok(())
+		}
+
+		#[weight = 0]
+		pub fn transfer_claim(origin, claim: Vec<u8>, receiver: T::AccountId) -> dispatch::DispatchResult {
+			let sender = ensure_signed(origin)?;
+
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
+
+			ensure!(owner != receiver, Error::<T>::TransferToSelf);
+
+			Proofs::<T>::mutate(&claim, |val| {
+				// we change block number here because it represent the claim changed height
+				*val = (receiver.clone(), system::Module::<T>::block_number());
+			});
+			Self::deposit_event(RawEvent::ClaimTransfered(owner, receiver, claim));
+
 			Ok(())
 		}
 	}
