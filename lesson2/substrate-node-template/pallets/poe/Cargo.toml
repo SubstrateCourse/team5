@@ -1,11 +1,11 @@
 [package]
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
-description = 'FRAME pallet template'
+authors = ['Anonymous']
+description = 'FRAME pallet proof of existence'
 edition = '2018'
-homepage = 'https://substrate.io'
+homepage = 'https://substrate.dev'
 license = 'Unlicense'
-name = 'pallet-template'
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
+name = 'pallet-poe'
+repository = 'https://github.com/paritytech/substrate/'
 version = '2.0.0-rc2'
 
 [dependencies.codec]
