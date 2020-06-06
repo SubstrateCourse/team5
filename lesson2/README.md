@@ -14,13 +14,46 @@
 * 创建存证，可调用函数所接收参数为内容的哈希值 Vec<u8>；
 * 撤销存证，可调用函数所接收参数为内容的哈希值 Vec<u8>。
 
+**run node**
+![run-node](./1-run-node.png)
+
+**create proof**
+![create-claim](./1-create-claim.png)
+
+**get proof**
+![get-proof](./1-get-proof.png)
+
+**revoke proof**
+![revoke-claim](./1-revoke-claim.png)
+
+**get proof after revoking**
+![get-proof-after-revoke](./1-get-proof-after-revoke.png)
+
+**See code in pallets/poe**
+
 **第二题：为存证模块添加新的功能，**
 
 * 转移存证，接收两个参数，一个是内容的哈希值，另一个是存证的接收账户地址；当存证不存在或者发送请求的用户不是存证内容的拥有人时，返回错误；当所有的检查通过后，更新对应的存证记录，并触发一个事件。
 
+**create proof**
+![create-claim](./2-create-claim.png)
+
+**get proof**
+![get-proof](./2-get-proof.png)
+
+**transfer proof**
+![transfer-claim](./2-transfer-claim.png)
+
+**get proof after transfering**
+![get-proof-after-transfer](./2-get-proof-after-transfer.png)
+
+**See code in pallets/poe**
+
 **第三题（附加题）：**
 
 * 创建存证时，为存证内容的哈希值设置界限，如果超出界限，返回错误。
+
+**See code in pallets/poe**
 
 ### 参考资料
 
