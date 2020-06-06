@@ -49,6 +49,12 @@ package = 'pallet-grandpa'
 tag = 'v2.0.0-rc2'
 version = '2.0.0-rc2'
 
+[dependencies.poe] 
+default-features = false
+package = 'pallet-poe'
+path = '../pallets/poe'
+version = '2.0.0-rc2'
+
 [dependencies.randomness-collective-flip]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -176,6 +182,7 @@ std = [
     'frame-executive/std',
     'frame-support/std',
     'grandpa/std',
+    'poe/std',
     'randomness-collective-flip/std',
     'serde',
     'sp-api/std',
