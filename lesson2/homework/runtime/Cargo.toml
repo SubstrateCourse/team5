@@ -1,10 +1,7 @@
 [package]
-authors = ['Substrate DevHub <https://github.com/substrate-developer-hub>']
+authors = ['Richard']
 edition = '2018'
-homepage = 'https://substrate.io'
-license = 'Unlicense'
-name = 'node-template-runtime'
-repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
+name = 'homework-runtime'
 version = '2.0.0-rc2'
 
 [package.metadata.docs.rs]
@@ -147,12 +144,6 @@ package = 'frame-system'
 tag = 'v2.0.0-rc2'
 version = '2.0.0-rc2'
 
-[dependencies.template]
-default-features = false
-package = 'pallet-template'
-path = '../pallets/template'
-version = '2.0.0-rc2'
-
 [dependencies.timestamp]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
@@ -165,6 +156,12 @@ default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 package = 'pallet-transaction-payment'
 tag = 'v2.0.0-rc2'
+version = '2.0.0-rc2'
+
+[dependencies.poe]
+default-features = false
+package = 'poe'
+path = '../pallets/poe'
 version = '2.0.0-rc2'
 
 [features]
@@ -194,7 +191,7 @@ std = [
     'system/std',
     'timestamp/std',
     'transaction-payment/std',
-    'template/std',
+    'poe/std',
 ]
 
 [build-dependencies.wasm-builder-runner]
