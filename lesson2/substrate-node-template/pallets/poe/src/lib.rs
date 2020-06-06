@@ -9,8 +9,10 @@
 /// For more guidance on Substrate FRAME, see the example pallet
 /// https://github.com/paritytech/substrate/blob/master/frame/example/src/lib.rs
 
-use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, dispatch::{DispatchResult};
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, dispatch::DispatchResult};
 use frame_system::{self as system, ensure_signed};
+
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
