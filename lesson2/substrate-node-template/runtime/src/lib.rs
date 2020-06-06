@@ -210,6 +210,10 @@ impl grandpa::Trait for Runtime {
 	type HandleEquivocation = ();
 }
 
+impl poe::Trait for Runtime { 
+	type Event = Event; 
+}
+
 parameter_types! {
 	pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
 }
@@ -273,6 +277,7 @@ construct_runtime!(
 		Sudo: sudo::{Module, Call, Config<T>, Storage, Event<T>},
 		// Used for the module template in `./template.rs`
 		TemplateModule: template::{Module, Call, Storage, Event<T>},
+		PoeModule: poe::{Module, Call, Storage, Event<T>},
 	}
 );
 
