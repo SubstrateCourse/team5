@@ -53,6 +53,7 @@ decl_error! {
 		DuplicateClaim,
 		ClaimNotExist,
 		NotClaimOwner,
+		ClaimOutOfLimit
 	}
 }
 
@@ -74,6 +75,8 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::DuplicateClaim);
+
+			ensure!(claim.len() <= 64, Error::<T>::ClaimOutOfLimit);
 			
 			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
 
