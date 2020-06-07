@@ -38,7 +38,7 @@ git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc2'
 version = '2.0.0-rc2'
 
-[dev-dependencies.sp-runtime]
+[dependencies.sp-runtime]
 default-features = false
 git = 'https://github.com/paritytech/substrate.git'
 tag = 'v2.0.0-rc2'
@@ -57,4 +57,5 @@ std = [
     'frame-support/std',
     'frame-system/std',
     'sp-std/std',
+    'sp-runtime/std',
 ]
