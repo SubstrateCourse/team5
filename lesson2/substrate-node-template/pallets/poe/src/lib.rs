@@ -11,7 +11,7 @@
 
 use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, dispatch::DispatchResult};
 use frame_system::{self as system, ensure_signed};
-
+use sp_runtime::traits::StaticLookup;
 use sp_std::vec::Vec;
 
 #[cfg(test)]
@@ -102,19 +102,22 @@ decl_module! {
 			Ok(())
 		}
 
+		// 第二题答案
 		#[weight = 0]
-		pub fn transfer_claim(origin, claim: Vec<u8>, new_owner:T::AccountId) -> DispatchResult{
+		pub fn transfer_claim(origin, claim: Vec<u8>, dest: <T::Lookup as StaticLookup>::Source) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
 
-			let (owner, _) = Proofs::<T>::get(&claim);
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
 
-			ensure!(sender == owner, Error::<T>::NotClaimOwner);
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
 
-			Proofs::<T>::insert(&claim, (&new_owner,<system::Module<T>>::block_number()));
+			let dest = T::Lookup::lookup(dest)?;
 
-			Self::deposit_event(RawEvent::ClaimTransferred(new_owner, claim));
+			Proofs::<T>::insert(&claim, (&dest, system::Module::<T>::block_number()));
+
+			Self::deposit_event(RawEvent::ClaimTransferred(dest, claim));
 
 			Ok(())
 		}
