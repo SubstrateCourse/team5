@@ -10,13 +10,21 @@
 4. 附加题不是必答的，但可以酌情加分。
 
 **第一题：实现存证模块的功能，包括：**
-
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/run.png
 * 创建存证，可调用函数所接收参数为内容的哈希值 Vec<u8>；
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/createClaim0x06.png
+
 * 撤销存证，可调用函数所接收参数为内容的哈希值 Vec<u8>。
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/checkstatus.png
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/checkstatus2.png
 
 **第二题：为存证模块添加新的功能，**
 
 * 转移存证，接收两个参数，一个是内容的哈希值，另一个是存证的接收账户地址；当存证不存在或者发送请求的用户不是存证内容的拥有人时，返回错误；当所有的检查通过后，更新对应的存证记录，并触发一个事件。
+
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/createCliam0x07.png
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/check0x07.png
+https://github.com/bentiancai629/team5/blob/lesson-2/lesson2/transfer0x07.png
 
 **第三题（附加题）：**
 
