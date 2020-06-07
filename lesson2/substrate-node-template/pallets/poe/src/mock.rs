@@ -48,6 +48,10 @@ impl system::Trait for Test {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 }
+parameter_types! {
+	pub const MaxClaimLength: u32 = 8;
+}
 impl Trait for Test {
 	type Event = ();
+	type MaxClaimLength = MaxClaimLength;
 }

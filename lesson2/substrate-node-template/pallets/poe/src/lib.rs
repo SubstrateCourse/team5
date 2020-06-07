@@ -9,7 +9,7 @@
 /// For more guidance on Substrate FRAME, see the example pallet
 /// https://github.com/paritytech/substrate/blob/master/frame/example/src/lib.rs
 
-use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, dispatch::DispatchResult};
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, ensure, dispatch::DispatchResult, traits::Get};
 use frame_system::{self as system, ensure_signed};
 use sp_runtime::traits::StaticLookup;
 use sp_std::vec::Vec;
@@ -26,6 +26,9 @@ pub trait Trait: system::Trait {
 
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+
+	// 附加题
+	type MaxClaimLength: Get<u32>;
 }
 
 // This pallet's storage items.
@@ -53,7 +56,7 @@ decl_error! {
 		DuplicateClaim,
 		ClaimNotExist,
 		NotClaimOwner,
-		ClaimOutOfLimit
+		ClaimOutOfLimit,
 	}
 }
 
@@ -76,7 +79,7 @@ decl_module! {
 
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::DuplicateClaim);
 
-			ensure!(claim.len() <= 64, Error::<T>::ClaimOutOfLimit);
+			ensure!(T::MaxClaimLength::get() >= claim.len() as u32, Error::<T>::ClaimOutOfLimit);
 			
 			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
 
@@ -102,7 +105,7 @@ decl_module! {
 			Ok(())
 		}
 
-		// 第二题答案
+		// 第二题
 		#[weight = 0]
 		pub fn transfer_claim(origin, claim: Vec<u8>, dest: <T::Lookup as StaticLookup>::Source) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
