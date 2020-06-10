@@ -15,6 +15,9 @@
 * 撤销存证的测试用例；
 * 转移存证的测试用例；
 
+![CleanShot-20200610-223748-RQlbH8ww@2x](media/CleanShot-20200610-223748-RQlbH8ww@2x.png)
+
+
 第二题：编写存证模块的UI，包括
 
 * 创建存证的UI
