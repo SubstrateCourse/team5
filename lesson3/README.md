@@ -24,6 +24,21 @@
 * 删除存证的UI
 * 转移存证的UI
 
+创建存证
+
+![CleanShot-20200610-233519-1afV29a0@2x](media/CleanShot-20200610-233519-1afV29a0@2x.png)
+
+
+取消存证
+
+![CleanShot-20200610-233559-1kWoHk3L@2x](media/CleanShot-20200610-233559-1kWoHk3L@2x.png)
+
+
+转移存证
+
+![CleanShot-20200610-233643-2BJSv6dx@2x](media/CleanShot-20200610-233643-2BJSv6dx@2x.png)
+
+
 第三题（附加题）：实现购买存证的功能代码：
 
 * 用户A为自己的某个存证记录设置价格；
