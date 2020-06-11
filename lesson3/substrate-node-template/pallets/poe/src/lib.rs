@@ -4,17 +4,19 @@
 
 use frame_support::{
 	decl_module, decl_storage, decl_event, decl_error, dispatch, ensure,
-	traits::{Get},
+	traits::{Get, Currency, ExistenceRequirement},
 };
 use frame_system::{self as system, ensure_signed};
 use sp_std::prelude::*;
 use sp_runtime::traits::StaticLookup;
 
-#[cfg(test)]
-mod mock;
+// #[cfg(test)]
+// mod mock;
 
-#[cfg(test)]
-mod tests;
+// #[cfg(test)]
+// mod tests;
+
+type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait {
@@ -25,6 +27,8 @@ pub trait Trait: system::Trait {
 
 	// 附加题答案
 	type MaxClaimLength: Get<u32>;
+
+	type Currency: Currency<Self::AccountId>;
 }
 
 // This pallet's storage items.
@@ -34,6 +38,7 @@ decl_storage! {
 	// ---------------------------------vvvvvvvvvvvvvv
 	trait Store for Module<T: Trait> as TemplateModule {
 		Proofs get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
+		Price get(fn price): map hasher(blake2_128_concat) Vec<u8> => BalanceOf<T>;
 	}
 }
 
@@ -54,6 +59,10 @@ decl_error! {
 		ClaimNotExist,
 		NotClaimOwner,
 		ProofTooLong,
+		BuySelfClaim,
+		ClaimNotForSell,
+		BidPriceNotEnough,
+		AccountBalanceNotEnough,
 	}
 }
 
@@ -121,6 +130,49 @@ decl_module! {
 			Self::deposit_event(RawEvent::ClaimTransfered(sender, dest, claim));
 
 			Ok(())
+		}
+
+
+		#[weight = 0]
+		pub fn set_claim_price(origin, claim: Vec<u8>, price: BalanceOf<T>) -> dispatch::DispatchResult {
+			let sender = ensure_signed(origin)?;
+
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
+
+			ensure!(owner == sender, Error::<T>::NotClaimOwner);
+
+			Price::<T>::insert(&claim, price);
+
+			Ok(())
+		}
+
+		#[weight = 0]
+		pub fn buy_claim(origin, claim: Vec<u8>, bid_price: BalanceOf<T>) -> dispatch::DispatchResult {
+			let sender = ensure_signed(origin)?;
+
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+
+			let (owner, _block_number) = Proofs::<T>::get(&claim);
+
+			ensure!(owner != sender, Error::<T>::BuySelfClaim);
+
+			ensure!(Price::<T>::contains_key(&claim), Error::<T>::ClaimNotForSell);
+
+			ensure!(Price::<T>::get(&claim) <= bid_price, Error::<T>::BidPriceNotEnough);
+
+			T::Currency::transfer(&sender, &owner, bid_price, ExistenceRequirement::AllowDeath)
+				.map_err(|_| Error::<T>::AccountBalanceNotEnough)?;
+
+			// change owner and clear price
+			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
+			Price::<T>::remove(&claim);
+
+			Self::deposit_event(RawEvent::ClaimTransfered(owner, sender, claim));
+
+			Ok(())
+
 		}
 	}
 }
