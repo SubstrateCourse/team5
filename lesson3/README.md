@@ -24,6 +24,26 @@
 * 删除存证的UI
 * 转移存证的UI
 
+**部署和浏览器**
+![ui-terminal](./ui-terminal.png)
+
+![ui](./ui.png)
+
+**创建存证的UI**
+![ui-create-claim-1](./ui-create-claim-1.png)
+
+![ui-create-claim-2](./ui-create-claim-2.png)
+
+**删除存证的UI**
+![ui-revoke-claim-1](./ui-revoke-claim-1.png)
+
+![ui-revoke-claim-2](./ui-revoke-claim-2.png)
+
+**转移存证的UI**
+![ui-transfer-claim-1](./ui-transfer-claim-1.png)
+
+![ui-transfer-claim-2](./ui-transfer-claim-2.png)
+
 第三题（附加题）：实现购买存证的功能代码：
 
 * 用户A为自己的某个存证记录设置价格；
