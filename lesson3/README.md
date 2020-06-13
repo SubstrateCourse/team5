@@ -49,3 +49,23 @@
 * 用户A为自己的某个存证记录设置价格；
 * 用户B可以以一定的价格购买某个存证，当出价高于用户A设置的价格时，则以用户A设定的价格将费用从用户B转移到用户A，再将该存证进行转移。如果出价低于用户A的价格时，则不进行转移，返回错误。
 
+**Alice创建存证**
+![buy-claim-01](./buy-claim-01.png)
+
+**查看存证信息**
+![buy-claim-02](./buy-claim-02.png)
+
+**Alice设置存证价格99**
+![buy-claim-03](./buy-claim-03.png)
+
+**查询存证金额**
+![buy-claim-04](./buy-claim-04.png)
+
+**Bob使用88购买存证失败**
+![buy-claim-05](./buy-claim-05.png)
+
+**Bob使用100购买存证成功**
+![buy-claim-06](./buy-claim-06.png)
+
+**查看存证信息**
+![buy-claim-07](./buy-claim-07.png)
