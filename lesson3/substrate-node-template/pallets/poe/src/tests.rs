@@ -110,3 +110,106 @@ fn transfer_claim_failed_with_wrong_owner() {
         );
     })
 }
+
+#[test]
+fn bid_claim_works() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+        let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+
+        assert_ok!(PoeModule::bid_claim(Origin::signed(1), claim.clone(), 5));
+        assert_eq!(Prices::<Test>::get(&claim), 5);
+    })
+}
+
+#[test]
+fn bid_claim_failed_with_claim_not_exist() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+
+        assert_noop!(
+            PoeModule::bid_claim(Origin::signed(1), claim.clone(), 5),
+            Error::<Test>::ClaimNotExist
+        );
+    })
+}
+
+#[test]
+fn bid_claim_failed_with_wrong_owner() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+        let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+
+        assert_noop!(
+            PoeModule::bid_claim(Origin::signed(2), claim.clone(), 5),
+            Error::<Test>::NotClaimOwner
+        );
+    })
+}
+
+#[test]
+fn buy_claim_works() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+        let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+        let _ = PoeModule::bid_claim(Origin::signed(1), claim.clone(), 5);
+
+        assert_eq!(Proofs::<Test>::get(&claim), (1, system::Module::<Test>::block_number()));
+        let _ = PoeModule::buy_claim(Origin::signed(2), claim.clone(), 6);
+        assert_eq!(Proofs::<Test>::get(&claim), (2, system::Module::<Test>::block_number()));
+        assert_eq!(Prices::<Test>::get(&claim), 6);
+    })
+}
+
+#[test]
+fn buy_claim_failed_with_claim_not_exist() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+
+        assert_noop!(
+            PoeModule::buy_claim(Origin::signed(2), claim.clone(), 5),
+            Error::<Test>::ClaimNotExist
+        );
+    })
+}
+
+#[test]
+fn buy_claim_failed_with_not_for_bidding() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+        let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+
+        assert_noop!(
+            PoeModule::buy_claim(Origin::signed(2), claim.clone(), 5),
+            Error::<Test>::ClaimNotForBidding
+        );
+    })
+}
+
+#[test]
+fn buy_claim_failed_with_insufficient_price() {
+    new_test_ext().execute_with(|| {
+        let claim = vec![0, 1];
+        let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+        let _ = PoeModule::bid_claim(Origin::signed(1), claim.clone(), 5);
+
+        assert_noop!(
+            PoeModule::buy_claim(Origin::signed(2), claim.clone(), 4),
+            Error::<Test>::InsufficientPrice
+        );
+    })
+}
+
+#[test]
+fn buy_claim_failed_with_account_balance_not_enough() {
+   new_test_ext().execute_with(|| {
+       let claim = vec![0, 1];
+       let _ = PoeModule::create_claim(Origin::signed(1), claim.clone());
+       let _ = PoeModule::bid_claim(Origin::signed(1), claim.clone(), 5);
+
+       assert_noop!(
+            PoeModule::buy_claim(Origin::signed(2), claim.clone(), 30),
+            Error::<Test>::AccountBalanceNotEnough
+       );
+   })
+}

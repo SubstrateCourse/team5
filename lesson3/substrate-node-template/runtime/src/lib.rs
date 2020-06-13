@@ -267,6 +267,7 @@ impl poe::Trait for Runtime {
 	
 	// 附加题答案
 	type MaxClaimLength = MaxClaimLength;
+	type Currency = Balances;
 }
 
 construct_runtime!(
