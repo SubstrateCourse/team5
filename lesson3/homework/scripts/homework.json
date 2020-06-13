@@ -1,0 +1,8 @@
+{
+    "ProofInfo":{
+        "claimer": "AccountId",
+        "owner": "AccountId",
+        "price": "Balance",
+        "claim_block": "BlockNumber"
+    }
+}
