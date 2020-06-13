@@ -21,7 +21,11 @@
 * 创建存证的UI
 * 删除存证的UI
 * 转移存证的UI
-
+![](./images/2.png)
+![](./images/3.png)
+![](./images/4.png)
+![](./images/5.png)
+![](./images/6.png)
 
 第三题（附加题）：实现购买存证的功能代码：
 
