@@ -1,102 +1,34 @@
-# 作业
+## 第四课作业
 
-## 学员提交作业流程
+试在 [Substrate Front-end Template](https://github.com/SubstrateCourse/substrate-front-end-template) 或 node.js (node.js 则以命令行介面)，实现以下功能：
 
-### 准备
+这一题是基于第三节课的第二题。之前 后端 有一个 map 从 文件的 hash 关联到 用户 AccountID。然在也要记录创建的时间，还有就是前端加个 text input 允许用户存证时输入一组不长于 256 字符串的备注。
 
-1. 首先Fork自己所在组的代码仓库（本仓库）到自己的Github用户里，
+如果不确定确用什么 hash 函数的话，可用用 @polkadot/util-crypto ([NPM](https://www.npmjs.com/package/@polkadot/util-crypto)，[github](https://github.com/polkadot-js/common/tree/master/packages/util-crypto)) 内的 [blake2](https://github.com/polkadot-js/common/tree/master/packages/util-crypto/src/blake2) 或 [sha512](https://github.com/polkadot-js/common/tree/master/packages/util-crypto/src/sha512)。
 
-![fork](./fork.png)
+用 node. js 的话，则是写一个类似函数：
 
-2. 接着在本地，克隆刚刚Fork过来的代码仓库，Git命令为:
+```javascript
+// 取得 ApiPromise, 连到去远端 Substrate 节点的代码
 
-```
-git clone git@github.com:<your-github-account>/<your-team>.git
-```
-
-替换`your-github-account`为自己Github账户名，`<your-team>`为自己所在组。
-
-3. 然后在本地，添加自己所在组的代码仓库链接，方便后面更新代码，Git命令为：
-
-```
-git remote add upstream git@github.com:SubstrateCourse/<your-team>.git
+function submitDocInfo(filePath, comment) {
+  // 把 filePath 档档案通过 hash 函数算出它的 hash 值。然后用 Polkadot-JS API 提交个个 extrinsics 到 Substrate
+}
 ```
 
-替换`<your-team>`为自己所在组。通过`git remote -v`，你应该能看到新添加的远端仓库链接。
+附加题：这一题需要改动 前端 **及 Substrate 节点** 的代码。现在也加一个功能，允许前端输入一个 AccountID，遍历显示属于该用户的文件 hash, 其创建日期，及其备注
 
+用 node.js 的话，则是写一个类似函数：
 
-### 写作业流程
+```javascript
+// 取得 ApiPromise, 连到去远端 Substrate 节点的代码
 
-注意：**每次写作业**都需要按照下面的流程进行。
-
-1. 首先在本地，切换到以自己名字命名的分支， Git命令为：
-
+function getDocInfoFromAddr(addr) {
+  // 通过用户 addr, 取得他所有的创建文件的 hash及相关资料。返回值是：
+  // [{
+  //   docHash: ..., 
+  //   createdOn: ..., 
+  //   comment: ...
+  // }, {}, ...]
+}
 ```
-git checkout <your-name>
-```
-
-替换`your-name`为自己的名字或Github账户名字，如果没有，联系助教进行添加。如何查找：
-
-![branch](branch.png)
-
-2. 之后在本地，更新远端的代码到本地，Git命令为：
-
-```
-git pull upstream <your-name>
-```
-
-替换`your-name`为自己的名字或Github账户名字，注意这里**不能**是master分支。
-
-3. 接着在本地，创建一个新的分支，Git命令为：
-
-```
-git checkout -b <lesson-n>
-```
-
-替换`lesson-n`为第几节课，比如第一节课的作业是`lesson-1`。
-
-4. 进入到对应的作业目录里，开始写作业...
-
-5. 作业在本地完成后，commit 需要提交的作业内容，Git命令为：
-
-```shell
-// 添加你需要提交的作业
-git add -p
-
-// 添加某个文件
-git add <file-name>
-
-// commit 修改到本地
-git commit -m "homework for lesson n"
-```
-
-注意，你也可以包含多个commit记录，防止写作业的时候代码丢失，评分只会按照最终的代码结果。
-
-6. push到自己的Github仓库里，Git命令为：
-
-```
-git push origin <lesson-n>
-```
-
-这里的`lesson-n`和上面的一致。
-
-7. 发送作业PR，
-
-![create_pr](./create_pr.png)
-
-![send_pr](./send_pr.png)
-
-8. 通知助教批改作业。
-
-## 讲师、助教职责
-
-本仓库的master分支由讲师提交；
-
-本仓库由学员名字命名的分支，由学员通过发送PR提交，助教review之后merge到相应的分支。
-
-每节课之前，master分支会提交该课的作业基础代码，由助教将新增的代码同步到学员分支。
-
-*Flow:*
-
-![flow](./course_flow.png)
-
