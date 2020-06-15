@@ -15,14 +15,53 @@
 * 撤销存证的测试用例；
 * 转移存证的测试用例；
 
+![CleanShot-20200610-223748-RQlbH8ww@2x](media/CleanShot-20200610-223748-RQlbH8ww@2x.png)
+
+
 第二题：编写存证模块的UI，包括
 
 * 创建存证的UI
 * 删除存证的UI
 * 转移存证的UI
 
+创建存证
+
+![CleanShot-20200610-233519-1afV29a0@2x](media/CleanShot-20200610-233519-1afV29a0@2x.png)
+
+
+取消存证
+
+![CleanShot-20200610-233559-1kWoHk3L@2x](media/CleanShot-20200610-233559-1kWoHk3L@2x.png)
+
+
+转移存证
+
+![CleanShot-20200610-233643-2BJSv6dx@2x](media/CleanShot-20200610-233643-2BJSv6dx@2x.png)
+
+
 第三题（附加题）：实现购买存证的功能代码：
 
 * 用户A为自己的某个存证记录设置价格；
 * 用户B可以以一定的价格购买某个存证，当出价高于用户A设置的价格时，则以用户A设定的价格将费用从用户B转移到用户A，再将该存证进行转移。如果出价低于用户A的价格时，则不进行转移，返回错误。
 
+
+存证
+![CleanShot-20200611-221605-GHYEroGU@2x](media/CleanShot-20200611-221605-GHYEroGU@2x.png)
+
+
+不存在的存证，设置价格失败
+
+![CleanShot-20200611-221656-OX6Vsbiq@2x](media/CleanShot-20200611-221656-OX6Vsbiq@2x.png)
+
+
+设置价格
+
+![CleanShot-20200611-221738-VCosbi3y@2x](media/CleanShot-20200611-221738-VCosbi3y@2x.png)
+
+换成 bob，出价不够，购买失败
+
+![CleanShot-20200611-221839-fU3ZOdJy@2x](media/CleanShot-20200611-221839-fU3ZOdJy@2x.png)
+
+出价够了，购买成功
+
+![CleanShot-20200611-221913-TwVIGvoF@2x](media/CleanShot-20200611-221913-TwVIGvoF@2x.png)
