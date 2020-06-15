@@ -15,11 +15,17 @@
 * 撤销存证的测试用例；
 * 转移存证的测试用例；
 
+![test_case](test_case.png)
+
 第二题：编写存证模块的UI，包括
 
 * 创建存证的UI
 * 删除存证的UI
 * 转移存证的UI
+
+![revoke](revoke.png)
+
+![front](front.png)
 
 第三题（附加题）：实现购买存证的功能代码：
 
