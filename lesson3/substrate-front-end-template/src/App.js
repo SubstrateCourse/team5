@@ -5,6 +5,8 @@ import 'semantic-ui-css/semantic.min.css';
 import { SubstrateContextProvider, useSubstrate } from './substrate-lib';
 import { DeveloperConsole } from './substrate-lib/components';
 
+
+
 import AccountSelector from './AccountSelector';
 import Balances from './Balances';
 import BlockNumber from './BlockNumber';
@@ -13,6 +15,7 @@ import Interactor from './Interactor';
 import Metadata from './Metadata';
 import NodeInfo from './NodeInfo';
 import TemplateModule from './TemplateModule';
+import PoeModule from './PoeModule';
 import Transfer from './Transfer';
 import Upgrade from './Upgrade';
 
@@ -67,6 +70,9 @@ function Main () {
           </Grid.Row>
           <Grid.Row>
             <TemplateModule accountPair={accountPair} />
+          </Grid.Row>
+          <Grid.Row>
+            <PoeModule accountPair={accountPair} />
           </Grid.Row>
         </Grid>
         <DeveloperConsole />
