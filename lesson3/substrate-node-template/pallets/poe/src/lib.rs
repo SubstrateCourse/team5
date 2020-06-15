@@ -68,7 +68,7 @@ decl_module! {
 		// this is needed only if you are using events in your pallet
 		fn deposit_event() = default;
 
-		#[weight = 0]
+		#[weight = 1000000]
 		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -84,7 +84,7 @@ decl_module! {
 			Ok(())
 		}
 
-		#[weight = 0]
+		#[weight = 100000]
 		pub fn revoke_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
 
@@ -102,7 +102,7 @@ decl_module! {
 		}
 
 		// 第二题答案
-		#[weight = 0]
+		#[weight = 100000]
 		pub fn transfer_claim(origin, claim: Vec<u8>, dest: <T::Lookup as StaticLookup>::Source) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
 
