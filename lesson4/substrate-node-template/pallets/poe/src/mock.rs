@@ -50,9 +50,15 @@ impl system::Trait for Test {
     type OnKilledAccount = ();
 }
 
+impl timestamp::Trait for Test {
+    type Moment = u64;
+    type OnTimestampSet = ();
+    type MinimumPeriod = ();
+}
+
 parameter_types! {
 	pub const MaxClaimLength: u32 = 6;
-	pub const MaxCommentLength: u32 = 4;
+	pub const MaxCommentLength: u32 = 6;
 	pub const ExistentialDeposit: u64 = 1;
 }
 
