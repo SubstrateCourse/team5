@@ -17,6 +17,7 @@ function Main(props) {
   const [owner, setOwner] = useState('');
   const [blockNumber, setBlockNumber] = useState(0);
   const [receiver, setReceiver] = useState("none");
+  const [comment, setComment]=useState('');
 
 
   useEffect(() => {
@@ -59,6 +60,12 @@ function Main(props) {
             label='Your File'
             onChange={(e) => handleFileChosen(e.target.files[0])}
           />
+        <Input
+            label='Comment'
+            state='comment'
+            type='string'
+            onChange={(_, { value }) => setComment(value)}
+          />
         </Form.Field>
 
         <Form.Field>
@@ -69,8 +76,8 @@ function Main(props) {
             type='SIGNED-TX'
             attrs={{
               palletRpc: 'poeModule',
-              callable: 'crateClaim',
-              inputParams: [digest],
+              callable: 'createClaim',
+              inputParams: [digest,comment],
               paramFields: [true]
             }}
           />
@@ -111,6 +118,12 @@ function Main(props) {
             type='string'
             onChange={(_, { value }) => setReceiver(value)}
           />
+          <Input
+            label='New Comment'
+            state='comment'
+            type='string'
+            onChange={(_, { value }) => setComment(value)}
+          />
           <TxButton
             accountPair={accountPair}
             label='Transfer Claim'
@@ -119,7 +132,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'poeModule',
               callable: 'transferClaim',
-              inputParams: [digest, receiver],
+              inputParams: [digest, receiver,comment],
               paramFields: [true]
             }}
           />
