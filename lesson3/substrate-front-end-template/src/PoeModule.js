@@ -5,15 +5,18 @@ import { Form, Input, Grid } from 'semantic-ui-react';
 import { useSubstrate } from './substrate-lib';
 import { TxButton } from './substrate-lib/components';
 import { blake2AsHex } from '@polkadot/util-crypto';
+
 import AccountSelector from './AccountSelector';
 
 function Main(props) {
+
   const { api } = useSubstrate();
   const { accountPair } = props;
 
   // The transaction submission status
   const [status, setStatus] = useState('');
   const [digest, setDigest] = useState('');
+
   const [owner, setOwner] = useState('');
   const [blockNumber, setBlockNumber] = useState(0);
   const [receiver, setReceiver] = useState("none");
@@ -22,8 +25,10 @@ function Main(props) {
   useEffect(() => {
     let unsubscribe;
     api.query.poeModule.proofs(digest, (result) => {
+
       setOwner(result[0].toString());
       setBlockNumber(result[1].toNumber());
+
     }).then(unsub => {
       unsubscribe = unsub;
     })
@@ -40,17 +45,21 @@ function Main(props) {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 
+
       const hash = blake2AsHex(content, 256);
       setDigest(hash);
     }
 
+
     fileReader.onloadend = bufferToDigest;
+
     fileReader.readAsArrayBuffer(file);
   }
 
   return (
     <Grid.Column width={8}>
       <h1>Proof of Existence Module</h1>
+
       <Form>
         <Form.Field>
           <Input
@@ -61,6 +70,7 @@ function Main(props) {
           />
         </Form.Field>
 
+
         <Form.Field>
           <TxButton
             accountPair={accountPair}
@@ -69,6 +79,7 @@ function Main(props) {
             type='SIGNED-TX'
             attrs={{
               palletRpc: 'poeModule',
+
               callable: 'crateClaim',
               inputParams: [digest],
               paramFields: [true]
@@ -84,6 +95,7 @@ function Main(props) {
               palletRpc: 'poeModule',
               callable: 'revokeClaim',
               inputParams: [digest],
+
               paramFields: [true]
             }}
           />
@@ -106,11 +118,13 @@ function Main(props) {
             onChange={(_, { value }) => setDigest(value)}
           />
         <Input
+
             label='Claim Receiver'
             state='receiver'
             type='string'
             onChange={(_, { value }) => setReceiver(value)}
           />
+
           <TxButton
             accountPair={accountPair}
             label='Transfer Claim'
@@ -120,6 +134,7 @@ function Main(props) {
               palletRpc: 'poeModule',
               callable: 'transferClaim',
               inputParams: [digest, receiver],
+
               paramFields: [true]
             }}
           />
@@ -130,12 +145,15 @@ function Main(props) {
         <div>{status}</div>
         <div>{`Claim info, owner: ${owner}, blockNumber: ${blockNumber}`}</div>
       </Form>
+
     </Grid.Column>
   );
 }
+
 
 export default function PoeModule(props) {
   const { api } = useSubstrate();
   return (api.query.poeModule && api.query.poeModule.proofs
     ? <Main {...props} /> : null);
 }
+
