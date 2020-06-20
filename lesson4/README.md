@@ -4,6 +4,12 @@
 
 这一题是基于第三节课的第二题。之前 后端 有一个 map 从 文件的 hash 关联到 用户 AccountID。然在也要记录创建的时间，还有就是前端加个 text input 允许用户存证时输入一组不长于 256 字符串的备注。
 
+局部code
+![create_Note_jscode](./createNote_code.png)
+演示
+![create_Note_Demo](./createNote_demo.png)
+
+
 如果不确定确用什么 hash 函数的话，可用用 @polkadot/util-crypto ([NPM](https://www.npmjs.com/package/@polkadot/util-crypto)，[github](https://github.com/polkadot-js/common/tree/master/packages/util-crypto)) 内的 [blake2](https://github.com/polkadot-js/common/tree/master/packages/util-crypto/src/blake2) 或 [sha512](https://github.com/polkadot-js/common/tree/master/packages/util-crypto/src/sha512)。
 
 用 node. js 的话，则是写一个类似函数：
@@ -17,6 +23,12 @@ function submitDocInfo(filePath, comment) {
 ```
 
 附加题：这一题需要改动 前端 **及 Substrate 节点** 的代码。现在也加一个功能，允许前端输入一个 AccountID，遍历显示属于该用户的文件 hash, 其创建日期，及其备注
+
+局部code
+![Query_code](./Query_code.png)
+演示
+![Query_Demo](./Query_demo.png)
+
 
 用 node.js 的话，则是写一个类似函数：
 
