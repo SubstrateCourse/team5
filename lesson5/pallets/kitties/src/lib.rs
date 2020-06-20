@@ -5,7 +5,7 @@ use frame_support::{decl_module, decl_storage, decl_error, ensure, StorageValue,
 use sp_io::hashing::blake2_128;
 use frame_system::ensure_signed;
 use sp_runtime::{DispatchError, DispatchResult};
-
+use pallet_randomness_collective_flip;
 #[derive(Encode, Decode)]
 pub struct Kitty(pub [u8; 16]);
 
@@ -51,6 +51,7 @@ decl_module! {
 			let kitty = Kitty(dna);
 
 			// 作业：补完剩下的部分
+			Self::insert_kitty(sender, kitty_id, kitty)
 		}
 
 		/// Breed kitties
@@ -70,6 +71,12 @@ fn combine_dna(dna1: u8, dna2: u8, selector: u8) -> u8 {
 impl<T: Trait> Module<T> {
 	fn random_value(sender: &T::AccountId) -> [u8; 16] {
 		// 作业：完成方法
+		let nonce = Self::kitties_count();
+       	let random_seed = <pallet_randomness_collective_flip::Module<T>>::random_seed();
+        let encoded = (random_seed, sender.clone(), nonce).encode();
+		
+		blake2_128(&encoded)
+		
 	}
 
 	fn next_kitty_id() -> sp_std::result::Result<u32, DispatchError> {
@@ -82,6 +89,10 @@ impl<T: Trait> Module<T> {
 
 	fn insert_kitty(owner: T::AccountId, kitty_id: u32, kitty: Kitty) {
 		// 作业：完成方法
+		<Kitties>::insert(kitty_id.clone(), &kitty);
+		<KittiesCount>::put(Self::kitties_count()+1);
+		<OwnedKitties<T>>::insert((owner.clone(), Self::owned_kitties_count(owner.clone())+1), kitty_id );
+		<OwnedKittiesCount<T>>::insert(owner.clone(), Self::owned_kitties_count(owner.clone())+1);
 	}
 
 	fn do_breed(sender: T::AccountId, kitty_id_1: u32, kitty_id_2: u32) -> DispatchResult {
