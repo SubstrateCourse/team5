@@ -8,6 +8,13 @@ name = 'pallet-poe'
 repository = 'https://github.com/substrate-developer-hub/substrate-node-template/'
 version = '2.0.0-rc2'
 
+[dependencies.balances]
+default-features = false
+git = 'https://github.com/paritytech/substrate.git'
+package = 'pallet-balances'
+tag = 'v2.0.0-rc2'
+version = '2.0.0-rc2'
+
 [dependencies.codec]
 default-features = false
 features = ['derive']
@@ -53,6 +60,7 @@ version = '2.0.0-rc2'
 [features]
 default = ['std']
 std = [
+    'balances/std',
     'codec/std',
     'frame-support/std',
     'frame-system/std',
