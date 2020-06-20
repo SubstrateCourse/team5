@@ -1,0 +1,17 @@
+{
+  "APP_NAME": "substrate-front-end-tutorial",
+  "DEVELOPMENT_KEYRING": true,
+  "CUSTOM_TYPES": {
+    "Address": "AccountId",
+    "LookupSource": "AccountId",
+    "ProofInfo":{
+      "claimer": "AccountId",
+      "owner": "AccountId",
+      "comment": "Vec<u8>",
+      "price": "Balance",
+      "created_on":"Moment",
+      "claim_block": "BlockNumber"
+    }
+
+  }
+}

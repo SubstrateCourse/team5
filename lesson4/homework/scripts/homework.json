@@ -1,0 +1,10 @@
+{
+    "ProofInfo":{
+        "claimer": "AccountId",
+        "owner": "AccountId",
+        "comment": "Vec<u8>",
+        "price": "Balance",
+        "created_on":"Moment",
+        "claim_block": "BlockNumber"
+    }
+}
