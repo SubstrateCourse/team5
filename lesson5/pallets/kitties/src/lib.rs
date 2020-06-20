@@ -9,8 +9,7 @@ use sp_runtime::{DispatchError, DispatchResult};
 #[derive(Encode, Decode)]
 pub struct Kitty(pub [u8; 16]);
 
-pub trait Trait: frame_system::Trait {
-}
+pub trait Trait: frame_system::Trait {}
 
 decl_storage! {
 	trait Store for Module<T: Trait> as Kitties {
@@ -50,7 +49,7 @@ decl_module! {
 			// Create and store kitty
 			let kitty = Kitty(dna);
 
-			// 作业：补完剩下的部分
+			Self::insert_kitty(sender, kitty_id, kitty);
 		}
 
 		/// Breed kitties
@@ -64,48 +63,58 @@ decl_module! {
 }
 
 fn combine_dna(dna1: u8, dna2: u8, selector: u8) -> u8 {
-	(selector & dna1) | (!selector & dna2)
+    (selector & dna1) | (!selector & dna2)
 }
 
 impl<T: Trait> Module<T> {
-	fn random_value(sender: &T::AccountId) -> [u8; 16] {
-		// 作业：完成方法
-	}
+    fn random_value(sender: &T::AccountId) -> [u8; 16] {
+        let payload = (
+            <pallet_randomness_collective_flip::Module<T> as Randomness<T::Hash>>::random_seed(),
+            sender,
+            <frame_system::Module<T>>::extrinsic_index()
+        );
+        payload.using_encoded(sp_io::hashing::blake2_128)
+    }
 
-	fn next_kitty_id() -> sp_std::result::Result<u32, DispatchError> {
-		let kitty_id = Self::kitties_count();
-		if kitty_id == u32::max_value() {
-			return Err(Error::<T>::KittiesCountOverflow.into());
-		}
-		Ok(kitty_id)
-	}
+    fn next_kitty_id() -> sp_std::result::Result<u32, DispatchError> {
+        let kitty_id = Self::kitties_count();
+        if kitty_id == u32::max_value() {
+            return Err(Error::<T>::KittiesCountOverflow.into());
+        }
+        Ok(kitty_id)
+    }
 
-	fn insert_kitty(owner: T::AccountId, kitty_id: u32, kitty: Kitty) {
-		// 作业：完成方法
-	}
+    fn insert_kitty(owner: T::AccountId, kitty_id: u32, kitty: Kitty) {
+        Kitties::insert(kitty_id, kitty);
+        KittiesCount::put(kitty_id + 1);
 
-	fn do_breed(sender: T::AccountId, kitty_id_1: u32, kitty_id_2: u32) -> DispatchResult {
-		let kitty1 = Self::kitties(kitty_id_1).ok_or(Error::<T>::InvalidKittyId)?;
-		let kitty2 = Self::kitties(kitty_id_2).ok_or(Error::<T>::InvalidKittyId)?;
+        let owned_kitties_count = Self::owned_kitties_count(owner.clone());
+        OwnedKitties::<T>::insert((owner.clone(), owned_kitties_count), kitty_id);
+        OwnedKittiesCount::<T>::insert(owner.clone(), owned_kitties_count + 1);
+    }
 
-		ensure!(kitty_id_1 != kitty_id_2, Error::<T>::RequireDifferentParent);
+    fn do_breed(sender: T::AccountId, kitty_id_1: u32, kitty_id_2: u32) -> DispatchResult {
+        let kitty1 = Self::kitties(kitty_id_1).ok_or(Error::<T>::InvalidKittyId)?;
+        let kitty2 = Self::kitties(kitty_id_2).ok_or(Error::<T>::InvalidKittyId)?;
 
-		let kitty_id = Self::next_kitty_id()?;
+        ensure!(kitty_id_1 != kitty_id_2, Error::<T>::RequireDifferentParent);
 
-		let kitty1_dna = kitty1.0;
-		let kitty2_dna = kitty2.0;
+        let kitty_id = Self::next_kitty_id()?;
 
-		// Generate a random 128bit value
-		let selector = Self::random_value(&sender);
-		let mut new_dna = [0u8; 16];
+        let kitty1_dna = kitty1.0;
+        let kitty2_dna = kitty2.0;
 
-		// Combine parents and selector to create new kitty
-		for i in 0..kitty1_dna.len() {
-			new_dna[i] = combine_dna(kitty1_dna[i], kitty2_dna[i], selector[i]);
-		}
+        // Generate a random 128bit value
+        let selector = Self::random_value(&sender);
+        let mut new_dna = [0u8; 16];
 
-		Self::insert_kitty(sender, kitty_id, Kitty(new_dna));
+        // Combine parents and selector to create new kitty
+        for i in 0..kitty1_dna.len() {
+            new_dna[i] = combine_dna(kitty1_dna[i], kitty2_dna[i], selector[i]);
+        }
 
-		Ok(())
-	}
+        Self::insert_kitty(sender, kitty_id, Kitty(new_dna));
+
+        Ok(())
+    }
 }
