@@ -33,8 +33,8 @@ function Main () {
     </Dimmer>
   );
 
-  if (apiState === 'ERROR') return loader('Error connecting to the blockchain');
-  else if (apiState !== 'READY') return loader('Connecting to the blockchain');
+  if (apiState === 'ERROR') {return loader('Error connecting to the blockchain');}
+  else if (apiState !== 'READY') {return loader('Connecting to the blockchain');}
 
   if (keyringState !== 'READY') {
     return loader(
@@ -47,7 +47,7 @@ function Main () {
   return (
     <div ref={contextRef}>
       <Sticky context={contextRef}>
-        <AccountSelector setAccountAddress={setAccountAddress} />
+        <AccountSelector setAccountAddress={setAccountAddress}/>
       </Sticky>
       <Container>
         <Grid stackable columns='equal'>

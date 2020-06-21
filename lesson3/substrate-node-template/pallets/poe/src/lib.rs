@@ -1,14 +1,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-/// A FRAME pallet proof of existence with necessary imports
 
-use frame_support::{
-	decl_module, decl_storage, decl_event, decl_error, dispatch, ensure,
-	traits::{Get},
+use frame_support::{decl_module, decl_storage, decl_event, decl_error, dispatch, ensure, StorageMap,
+					traits::{Get, Currency, ExistenceRequirement::AllowDeath},
 };
 use frame_system::{self as system, ensure_signed};
-use sp_std::prelude::*;
-use sp_runtime::traits::StaticLookup;
+use sp_std::vec::Vec;
 
 #[cfg(test)]
 mod mock;
@@ -16,15 +13,16 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+
+type BalanceOf<T> =<<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 /// The pallet's configuration trait.
 pub trait Trait: system::Trait {
 	// Add other types and constants required to configure this pallet.
 
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
-
-	// 附加题答案
-	type MaxClaimLength: Get<u32>;
+	type Currency :Currency<Self::AccountId>;
+	type MaxClaimLength:Get<u32>;
 }
 
 // This pallet's storage items.
@@ -32,16 +30,22 @@ decl_storage! {
 	// It is important to update your storage name so that your pallet's
 	// storage items are isolated from other pallets.
 	// ---------------------------------vvvvvvvvvvvvvv
-	trait Store for Module<T: Trait> as TemplateModule {
+	trait Store for Module<T: Trait> as poeMoudle {
+		Prices get(fn price) :map hasher(blake2_128_concat) Vec<u8> =>BalanceOf<T>;
 		Proofs get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
 	}
 }
 
 // The pallet's events
 decl_event!(
-	pub enum Event<T> where AccountId = <T as system::Trait>::AccountId {
-		ClaimCreated(AccountId, Vec<u8>),
+	pub enum Event<T> 
+	where AccountId = <T as system::Trait>::AccountId, 
+		  Balance = BalanceOf<T>, 
+		  BlockNumber = <T as system::Trait>::BlockNumber{
+		ClaimCreated(AccountId, Vec<u8>,BlockNumber),
 		ClaimRevoked(AccountId, Vec<u8>),
+		ProofTransferto(AccountId, Vec<u8>),
+		ClaimForSale(AccountId, Vec<u8>, Balance),
 	}
 );
 
@@ -49,9 +53,12 @@ decl_event!(
 decl_error! {
 	pub enum Error for Module<T: Trait> {
 		ProofAlreadyExist,
-		ClaimNotExist,
-		NotClaimOwner,
-		ProofTooLong,
+		NoSuchProof,
+		NotProofOwner,
+		TooLongHash,//limit size for proof
+		LowerThanPrice,
+		AccountFreeBalanceNotEnough,
+		NotForSale,
 	}
 }
 
@@ -68,55 +75,81 @@ decl_module! {
 		// this is needed only if you are using events in your pallet
 		fn deposit_event() = default;
 
-		#[weight = 0]
-		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
+		/// This fuction is for claim a proof 
+		#[weight = 10_000]
+		pub fn crate_claim(origin, proof: Vec<u8>) -> dispatch::DispatchResult {
+			// Check it was signed and get the signer. See also: ensure_root and ensure_none
 			let sender = ensure_signed(origin)?;
+			ensure!(!Proofs::<T>::contains_key(&proof),Error::<T>::ProofAlreadyExist);//ensure there are no same proof alreay exist
+			ensure!(T::MaxClaimLength::get() >= proof.len() as u32, Error::<T>::TooLongHash);//limit size for proof 
+			let current_block = <system::Module<T>>::block_number();
+			Proofs::<T>::insert(&proof, (&sender,current_block.clone()));
+			Self::deposit_event(RawEvent::ClaimCreated(sender, proof,current_block));
 
-			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
-
-			// 附加题答案
-			ensure!(T::MaxClaimLength::get() >= claim.len() as u32, Error::<T>::ProofTooLong);
-
-			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
-
-			Self::deposit_event(RawEvent::ClaimCreated(sender, claim));
-
+			
 			Ok(())
 		}
 
-		#[weight = 0]
-		pub fn revoke_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
+		/// This function can revoke the proof you have claimed  
+		#[weight = 10_000]
+		pub fn revoke_claim(origin, proof:Vec<u8>) -> dispatch::DispatchResult {
+			// Check it was signed and get the signer. See also: ensure_root and ensure_none
 			let sender = ensure_signed(origin)?;
 
-			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+			ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);//ensure the proof already exist 
+			let (owner, _) = Proofs::<T>::get(&proof);
+			ensure!(sender == owner, Error::<T>::NotProofOwner);//ensure only the owner of proof can revoke it
+			Proofs::<T>::remove(&proof);
+			Self::deposit_event(RawEvent::ClaimRevoked(sender,proof)); 
+			Ok(())
+		}
+
+		///This function can transfer one proof from one account to another
+		#[weight = 10_000]
+		pub fn transfer_claim(origin, proof:Vec<u8>, new_owner:T::AccountId) -> dispatch::DispatchResult{
+			
+			let sender = ensure_signed(origin)?;
+			ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			let (owner, _) = Proofs::<T>::get(&proof);
+			ensure!(sender == owner, Error::<T>::NotProofOwner);
+			Proofs::<T>::insert(&proof, (&new_owner,<system::Module<T>>::block_number()));//cover the old proof cliam
+			Self::deposit_event(RawEvent::ProofTransferto(new_owner,proof));
+
+			
+			
+			Ok(())
+		}
+
+
+		#[weight = 10_000]
+		pub fn set_price(origin, claim: Vec<u8>, price: BalanceOf<T>) -> dispatch::DispatchResult {
+			let sender = ensure_signed(origin)?;
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::NoSuchProof);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);
+			ensure!(owner == sender, Error::<T>::NotProofOwner);
 
-			ensure!(owner == sender, Error::<T>::NotClaimOwner);
-
-			Proofs::<T>::remove(&claim);
-
-			Self::deposit_event(RawEvent::ClaimRevoked(sender, claim));
+			Prices::<T>::insert(&claim, price);
+			Self::deposit_event(RawEvent::ClaimForSale(sender, claim, price));
 
 			Ok(())
 		}
 
-		// 第二题答案
 		#[weight = 0]
-		pub fn transfer_claim(origin, claim: Vec<u8>, dest: <T::Lookup as StaticLookup>::Source) -> dispatch::DispatchResult {
+		pub fn buy_claim(origin, claim: Vec<u8>, amount: BalanceOf<T>) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
-
-			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::ClaimNotExist);
+			ensure!(Proofs::<T>::contains_key(&claim), Error::<T>::NoSuchProof);
+			ensure!(Prices::<T>::contains_key(&claim), Error::<T>::NotForSale);
+			ensure!(amount >= Prices::<T>::get(&claim), Error::<T>::LowerThanPrice);
 
 			let (owner, _block_number) = Proofs::<T>::get(&claim);
+			T::Currency::transfer(&sender, &owner, amount, AllowDeath)
+				.map_err(|_| Error::<T>::AccountFreeBalanceNotEnough)?;
 
-			ensure!(owner == sender, Error::<T>::NotClaimOwner);
-
-			let dest = T::Lookup::lookup(dest)?;
-
-			Proofs::<T>::insert(&claim, (dest, system::Module::<T>::block_number()));
+			Proofs::<T>::insert(&claim, (sender, system::Module::<T>::block_number()));
 
 			Ok(())
 		}
+
 	}
 }
