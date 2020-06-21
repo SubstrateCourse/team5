@@ -7,29 +7,24 @@ import { TxButton } from './substrate-lib/components';
 import { blake2AsHex } from '@polkadot/util-crypto';
 import AccountSelector from './AccountSelector';
 
-
-import AccountSelector from './AccountSelector';
-
 function Main(props) {
-
   const { api } = useSubstrate();
   const { accountPair } = props;
 
   // The transaction submission status
   const [status, setStatus] = useState('');
   const [digest, setDigest] = useState('');
-
   const [owner, setOwner] = useState('');
   const [blockNumber, setBlockNumber] = useState(0);
-  const [accountAddress, setAccountAddress] = useState(null);
   const [receiver, setReceiver] = useState("none");
+  const [comment, setComment]=useState('');
+
 
   useEffect(() => {
     let unsubscribe;
     api.query.poeModule.proofs(digest, (result) => {
       setOwner(result[0].toString());
       setBlockNumber(result[1].toNumber());
-
     }).then(unsub => {
       unsubscribe = unsub;
     })
@@ -51,7 +46,6 @@ function Main(props) {
     }
 
     fileReader.onloadend = bufferToDigest;
-
     fileReader.readAsArrayBuffer(file);
   }
 
@@ -66,7 +60,14 @@ function Main(props) {
             label='Your File'
             onChange={(e) => handleFileChosen(e.target.files[0])}
           />
+        <Input
+            label='Comment'
+            state='comment'
+            type='string'
+            onChange={(_, { value }) => setComment(value)}
+          />
         </Form.Field>
+
         <Form.Field>
           <TxButton
             accountPair={accountPair}
@@ -75,8 +76,8 @@ function Main(props) {
             type='SIGNED-TX'
             attrs={{
               palletRpc: 'poeModule',
-              callable: 'crateClaim',
-              inputParams: [digest],
+              callable: 'createClaim',
+              inputParams: [digest,comment],
               paramFields: [true]
             }}
           />
@@ -117,7 +118,12 @@ function Main(props) {
             type='string'
             onChange={(_, { value }) => setReceiver(value)}
           />
-
+          <Input
+            label='New Comment'
+            state='comment'
+            type='string'
+            onChange={(_, { value }) => setComment(value)}
+          />
           <TxButton
             accountPair={accountPair}
             label='Transfer Claim'
@@ -126,7 +132,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'poeModule',
               callable: 'transferClaim',
-              inputParams: [digest, accountAddress],
+              inputParams: [digest, receiver,comment],
               paramFields: [true]
             }}
           />
@@ -137,7 +143,6 @@ function Main(props) {
         <div>{status}</div>
         <div>{`Claim info, owner: ${owner}, blockNumber: ${blockNumber}`}</div>
       </Form>
-
     </Grid.Column>
   );
 }
@@ -147,4 +152,3 @@ export default function PoeModule(props) {
   return (api.query.poeModule && api.query.poeModule.proofs
     ? <Main {...props} /> : null);
 }
-

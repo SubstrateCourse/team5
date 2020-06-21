@@ -86,7 +86,9 @@ decl_module! {
 			let (owner, _) = Proofs::<T>::get(&proof);
 			ensure!(sender == owner, Error::<T>::NotProofOwner);//ensure only the owner of proof can revoke it
 			Proofs::<T>::remove(&proof);
-			Self::deposit_event(RawEvent::ClaimRevoked(sender,proof));
+
+			Self::deposit_event(RawEvent::ClaimRevoked(sender,proof)); 
+
 			Ok(())
 		}
 
