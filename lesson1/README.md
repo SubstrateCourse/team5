@@ -4,33 +4,26 @@
 
 #### 第一题
 
-**请填写以下问题：（以下问题都可以在substrate官方文档里找到）**
+**请填写以下问题：（以下问题都可以在 substrate 官方文档里找到）**
 
-- Substrate的官方文档网址是什么？
-- Substrate的recipe网址是什么？
-- Substrate的rust docs的网址是什么？
-- Substrate的tutorial的网址是什么？
+- Substrate 的官方文档网址是什么？
+- Substrate 的 recipe 网址是什么？
+- Substrate 的 rust docs 的网址是什么？
+- Substrate 的 tutorial 的网址是什么？
 
-- Substrate Seminar在每周几进行？
-
-
+- Substrate Seminar 在每周几进行？
 
 #### 第二题
 
-**github的基本操作，养成良好的开源社区开发习惯**
+**github 的基本操作，养成良好的开源社区开发习惯**
 
-- star和watch substrate和polkadot的repo，并截屏
-- fork substrate到自己的repo，并给自己的repo提一个issue和PR，并截屏
-
-
+- star 和 watch substrate 和 polkadot 的 repo，并截屏
+- fork substrate 到自己的 repo，并给自己的 repo 提一个 issue 和 PR，并截屏
 
 #### 第三题
 
-**请编译第一节课中的node-template并截图编译成功的界面** (node-template链接： https://github.com/SubstrateCourse/substrate-node-template.git)
-
-
+**请编译第一节课中的 node-template 并截图编译成功的界面** (node-template 链接： https://github.com/SubstrateCourse/substrate-node-template.git)
 
 #### 第四题
 
-**请运行node-template节点并截图 ，单节点和多节点分别截图（ (node-template链接： https://github.com/SubstrateCourse/substrate-node-template.git)）**
-
+**请运行 node-template 节点并截图 ，单节点和多节点分别截图（ (node-template 链接： https://github.com/SubstrateCourse/substrate-node-template.git)）**
