@@ -20,9 +20,8 @@ function Main(props) {
 
   const [owner, setOwner] = useState('');
   const [blockNumber, setBlockNumber] = useState(0);
+  const [accountAddress, setAccountAddress] = useState(null);
   const [receiver, setReceiver] = useState("none");
-
-
 
   useEffect(() => {
     let unsubscribe;
@@ -72,8 +71,6 @@ function Main(props) {
             onChange={(e) => handleFileChosen(e.target.files[0])}
           />
         </Form.Field>
-
-
         <Form.Field>
           <TxButton
             accountPair={accountPair}
@@ -137,8 +134,7 @@ function Main(props) {
             attrs={{
               palletRpc: 'poeModule',
               callable: 'transferClaim',
-              inputParams: [digest, receiver],
-
+              inputParams: [digest, accountAddress],
               paramFields: [true]
             }}
           />
