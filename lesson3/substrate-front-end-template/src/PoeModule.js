@@ -1,12 +1,11 @@
 
+
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Grid } from 'semantic-ui-react';
 
 import { useSubstrate } from './substrate-lib';
 import { TxButton } from './substrate-lib/components';
 import { blake2AsHex } from '@polkadot/util-crypto';
-import AccountSelector from './AccountSelector';
-
 
 import AccountSelector from './AccountSelector';
 
@@ -27,6 +26,7 @@ function Main(props) {
   useEffect(() => {
     let unsubscribe;
     api.query.poeModule.proofs(digest, (result) => {
+
       setOwner(result[0].toString());
       setBlockNumber(result[1].toNumber());
 
@@ -38,6 +38,7 @@ function Main(props) {
     return () => unsubscribe && unsubscribe();
   }, [digest, api.query.poeModule]);
 
+
   const handleFileChosen = (file) => {
     let fileReader = new FileReader();
 
@@ -46,9 +47,11 @@ function Main(props) {
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 
+
       const hash = blake2AsHex(content, 256);
       setDigest(hash);
     }
+
 
     fileReader.onloadend = bufferToDigest;
 
@@ -58,6 +61,7 @@ function Main(props) {
   return (
     <Grid.Column width={8}>
       <h1>Proof of Existence Module</h1>
+
       <Form>
         <Form.Field>
           <Input
@@ -75,11 +79,13 @@ function Main(props) {
             type='SIGNED-TX'
             attrs={{
               palletRpc: 'poeModule',
+
               callable: 'crateClaim',
               inputParams: [digest],
               paramFields: [true]
             }}
           />
+
 
           <TxButton
             accountPair={accountPair}
@@ -90,6 +96,7 @@ function Main(props) {
               palletRpc: 'poeModule',
               callable: 'revokeClaim',
               inputParams: [digest],
+
               paramFields: [true]
             }}
           />
@@ -112,6 +119,7 @@ function Main(props) {
             onChange={(_, { value }) => setDigest(value)}
           />
         <Input
+
             label='Claim Receiver'
             state='receiver'
             type='string'
@@ -141,6 +149,7 @@ function Main(props) {
     </Grid.Column>
   );
 }
+
 
 export default function PoeModule(props) {
   const { api } = useSubstrate();
