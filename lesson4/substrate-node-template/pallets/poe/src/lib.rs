@@ -19,7 +19,7 @@ mod tests;
 type BalanceOf<T> = <<T as Trait>::Currency as Currency<<T as system::Trait>::AccountId>>::Balance;
 
 /// The pallet's configuration trait.
-pub trait Trait: system::Trait {
+pub trait Trait: system::Trait + timestamp::Trait {
     // Add other types and constants required to configure this pallet.
     /// The overarching event type.
     type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
@@ -40,6 +40,7 @@ decl_storage! {
 	trait Store for Module<T: Trait> as TemplateModule {
 		Proofs get(fn proofs): map hasher(blake2_128_concat) Vec<u8> => (T::AccountId, T::BlockNumber);
 		Prices get(fn prices): map hasher(blake2_128_concat) Vec<u8> => BalanceOf<T>;
+		AccountDocs get(fn account_docs): map hasher(identity) T::AccountId => Vec<(Vec<u8>, T::Moment, Vec<u8>)>;
 	}
 }
 
@@ -63,8 +64,9 @@ decl_error! {
 		ProofTooLong,
 		ClaimNotForBidding,
 		InsufficientPrice,
-		CommentTooLong,
 		AccountBalanceNotEnough,
+		DocumentNotExist,
+		CommentTooLong,
 	}
 }
 
@@ -82,15 +84,17 @@ decl_module! {
 		fn deposit_event() = default;
 
 		#[weight = 0]
-		pub fn create_claim(origin, claim: Vec<u8>) -> dispatch::DispatchResult {
+		pub fn create_claim(origin, claim: Vec<u8>, comments: Vec<u8>) -> dispatch::DispatchResult {
 			let sender = ensure_signed(origin)?;
 
 			ensure!(!Proofs::<T>::contains_key(&claim), Error::<T>::ProofAlreadyExist);
 
 			// 附加题答案
 			ensure!(T::MaxClaimLength::get() >= claim.len() as u32, Error::<T>::ProofTooLong);
+			ensure!(T::MaxCommentLength::get() >= comments.len() as u32, Error::<T>::CommentTooLong);
 
 			Proofs::<T>::insert(&claim, (sender.clone(), system::Module::<T>::block_number()));
+			Self::add_document(sender.clone(), claim.clone(), comments);
 
 			Self::deposit_event(RawEvent::ClaimCreated(sender, claim));
 
@@ -165,4 +169,16 @@ decl_module! {
 			Ok(())
 		}
 	}
+}
+
+impl<T: Trait> Module<T> {
+    pub fn add_document(sender: T::AccountId, claim: Vec<u8>, comments: Vec<u8>) {
+        if AccountDocs::<T>::contains_key(sender.clone()) {
+            let mut docs = AccountDocs::<T>::get(sender.clone());
+            docs.push((claim, <timestamp::Module<T>>::get(), comments));
+            AccountDocs::<T>::insert(sender.clone(), docs);
+        } else {
+            AccountDocs::<T>::insert(sender.clone(), vec![(claim, <timestamp::Module<T>>::get(), comments)]);
+        }
+    }
 }
