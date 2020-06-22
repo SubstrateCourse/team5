@@ -21,7 +21,8 @@
     "react-scripts": "3.2.0",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.0",
-    "toformat": "^2.0.0"
+    "toformat": "^2.0.0",
+    "yarn": "^1.22.4"
   },
   "devDependencies": {
     "eslint-config-standard": "^14.1.0",

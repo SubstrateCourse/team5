@@ -15,10 +15,16 @@
 * 撤销存证的测试用例；
 * 转移存证的测试用例；
 
+* 创建存证的UI
+https://github.com/bentiancai629/team5/blob/lesson-3/lesson3/lesson3-test.png
+
 第二题：编写存证模块的UI，包括
 
 * 创建存证的UI
+https://github.com/bentiancai629/team5/blob/lesson-3/lesson3/lesson3-lesson3-UI.png
+https://github.com/bentiancai629/team5/blob/lesson-3/lesson3/lesson3-createClaim.png
 * 删除存证的UI
+https://github.com/bentiancai629/team5/blob/lesson-3/lesson3/lesson3-revokeClaim.png
 * 转移存证的UI
 
 第三题（附加题）：实现购买存证的功能代码：
