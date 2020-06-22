@@ -1,4 +1,4 @@
-我会把OwnedKitties 改成 map   AccountId => Vec<kitty_id>
+我会把OwnedKitties 改成 map   AccountId => Vec<kitty_id>,利用binary_search()可以实现复杂度为O(logn)的搜索算法。
 
 //transfer kityy to receiver
 fn transfer(origin, receiver:AccountId, kitty_id:u32){
