@@ -72,6 +72,8 @@ decl_module! {
 		#[weight = 0]
 		pub fn transfer(origin, to: T::AccountId, kitty_id: T::KittyIndex) {
 			// 作业
+			let sender = ensure_signed(origin)?;
+			Self::do_transfer(sender, to, kitty_id)?;
 		}
 	}
 }
@@ -164,6 +166,7 @@ impl<T: Trait> Module<T> {
 
 	fn insert_owned_kitty(owner: &T::AccountId, kitty_id: T::KittyIndex) {
 		// 作业
+		OwnedKitties::<T>::append(owner, kitty_id);
 	}
 
 	fn insert_kitty(owner: &T::AccountId, kitty_id: T::KittyIndex, kitty: Kitty) {
@@ -172,6 +175,14 @@ impl<T: Trait> Module<T> {
 		KittiesCount::<T>::put(kitty_id + 1.into());
 
 		Self::insert_owned_kitty(owner, kitty_id);
+	}
+
+	fn do_transfer(sender: T::AccountId, to: T::AccountId, kitty_id: T::KittyIndex) -> DispatchResult {
+		// Self::kitties(kitty_id).ok_or(Error::<T>::InvalidKittyId)?;
+		Self::owned_kitties((sender.clone(), Some(kitty_id))).ok_or(Error::<T>::RequireOwner)?;
+		OwnedKitties::<T>::remove(&sender, kitty_id);
+		OwnedKitties::<T>::append(&to, kitty_id);
+		Ok(())
 	}
 
 	fn do_breed(sender: &T::AccountId, kitty_id_1: T::KittyIndex, kitty_id_2: T::KittyIndex) -> DispatchResult {
@@ -206,11 +217,15 @@ mod tests {
 	use super::*;
 
 	use sp_core::H256;
-	use frame_support::{impl_outer_origin, parameter_types, weights::Weight};
+	use frame_support::{
+		impl_outer_origin, assert_ok, assert_noop,
+		parameter_types, weights::Weight,
+	};
 	use sp_runtime::{
 		traits::{BlakeTwo256, IdentityLookup}, testing::Header, Perbill,
 	};
 	use frame_system as system;
+	use sp_io::TestExternalities;
 
 	impl_outer_origin! {
 		pub enum Origin for Test {}
@@ -256,6 +271,8 @@ mod tests {
 		type KittyIndex = u32;
 	}
 	type OwnedKittiesTest = OwnedKitties<Test>;
+	type Kitty = Module<Test>;
+	type System = system::Module<Test>;
 
 	// This function basically just builds a genesis storage key/value store according to
 	// our desired mockup.
@@ -322,5 +339,115 @@ mod tests {
 	#[test]
 	fn owned_kitties_can_remove_values() {
 		// 作业
+		new_test_ext().execute_with(|| {
+			OwnedKittiesTest::remove(&0, 1);
+			OwnedKittiesTest::append(&0, 1);
+			OwnedKittiesTest::append(&0, 2);
+			OwnedKittiesTest::append(&0, 3);
+
+			assert_eq!(OwnedKittiesTest::get(&(0, None)), Some(KittyLinkedItem {
+				prev: Some(3),
+				next: Some(1),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(1))), Some(KittyLinkedItem {
+				prev: None,
+				next: Some(2),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(2))), Some(KittyLinkedItem {
+				prev: Some(1),
+				next: Some(3),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(3))), Some(KittyLinkedItem {
+				prev: Some(2),
+				next: None,
+			}));
+
+			OwnedKittiesTest::remove(&0, 3);
+
+			assert_eq!(OwnedKittiesTest::get(&(0, None)), Some(KittyLinkedItem {
+				prev: Some(2),
+				next: Some(1),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(1))), Some(KittyLinkedItem {
+				prev: None,
+				next: Some(2),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(2))), Some(KittyLinkedItem {
+				prev: Some(1),
+				next: None,
+			}));
+
+			OwnedKittiesTest::remove(&0, 1);
+
+			assert_eq!(OwnedKittiesTest::get(&(0, None)), Some(KittyLinkedItem {
+				prev: Some(2),
+				next: Some(2),
+			}));
+
+			assert_eq!(OwnedKittiesTest::get(&(0, Some(2))), Some(KittyLinkedItem {
+				prev: None,
+				next: None,
+			}));
+
+			OwnedKittiesTest::remove(&0, 2);
+			assert_eq!(OwnedKittiesTest::get(&(0, None)), Some(KittyLinkedItem {
+				prev: None,
+				next: None,
+			}));
+		});
+	}
+
+	pub struct ExtBuilder;
+
+	impl ExtBuilder {
+		pub fn build() -> TestExternalities {
+			let storage = system::GenesisConfig::default()
+				.build_storage::<Test>()
+				.unwrap();
+			let mut ext = TestExternalities::from(storage);
+			ext.execute_with(|| System::set_block_number(1));
+			ext
+		}
+	}
+
+	#[test]
+	fn can_transfer() {
+		ExtBuilder::build().execute_with(|| {
+			assert_ok!(Kitty::create(Origin::signed(17)));
+			assert_ok!(Kitty::create(Origin::signed(17)));
+			assert_ok!(Kitty::breed(Origin::signed(17), 0 , 1));
+			assert_eq!(Kitty::kitties_count(), 3);
+			assert_noop!(
+				Kitty::transfer(Origin::signed(34), 34, 2),
+				Error::<Test>::RequireOwner,
+			);
+			assert_ok!(Kitty::transfer(Origin::signed(17), 34, 2));
+			assert_eq!(Kitty::kitties_count(), 3);
+			assert_noop!(
+				Kitty::transfer(Origin::signed(17), 51, 2),
+				Error::<Test>::RequireOwner,
+			);
+			assert_ok!(Kitty::transfer(Origin::signed(17), 51, 0));
+			assert_ok!(Kitty::transfer(Origin::signed(17), 51, 1));
+			assert_eq!(Kitty::kitties_count(), 3);
+			assert_noop!(
+				Kitty::transfer(Origin::signed(17), 51, 0),
+				Error::<Test>::RequireOwner,
+			);
+			assert_noop!(
+				Kitty::transfer(Origin::signed(17), 51, 1),
+				Error::<Test>::RequireOwner,
+			);
+			assert_ok!(Kitty::transfer(Origin::signed(34), 51, 2));
+			assert_noop!(
+				Kitty::transfer(Origin::signed(34), 51, 2),
+				Error::<Test>::RequireOwner,
+			);
+		});
 	}
 }
