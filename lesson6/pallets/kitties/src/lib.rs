@@ -9,7 +9,7 @@ use sp_runtime::{DispatchError, DispatchResult, traits::{AtLeast32Bit, Bounded, 
 #[derive(Encode, Decode)]
 pub struct Kitty(pub [u8; 16]);
 
-#[cfg_attr(feature = "std", derive(Debug, PartialEq, Eq))]
+#[derive(Debug, PartialEq, Eq)]
 #[derive(Encode, Decode)]
 pub struct KittyLinkedItem<T: Trait> {
 	pub prev: Option<T::KittyIndex>,
@@ -71,7 +71,11 @@ decl_module! {
 		/// Transfer a kitty to new owner
 		#[weight = 0]
 		pub fn transfer(origin, to: T::AccountId, kitty_id: T::KittyIndex) {
-			// 作业
+			let sender = ensure_signed(origin)?;
+			ensure!(!(OwnedKitties::<T>::get((&sender, Some(kitty_id)))==None), Error::<T>::RequireOwner);
+			<OwnedKitties<T>>::remove(&sender, kitty_id);
+			<OwnedKitties<T>>::append(&to, kitty_id);
+			
 		}
 	}
 }
@@ -163,7 +167,7 @@ impl<T: Trait> Module<T> {
 	}
 
 	fn insert_owned_kitty(owner: &T::AccountId, kitty_id: T::KittyIndex) {
-		// 作业
+		OwnedKitties::<T>::append(owner, kitty_id);
 	}
 
 	fn insert_kitty(owner: &T::AccountId, kitty_id: T::KittyIndex, kitty: Kitty) {
@@ -256,6 +260,7 @@ mod tests {
 		type KittyIndex = u32;
 	}
 	type OwnedKittiesTest = OwnedKitties<Test>;
+	type KittiesModule = Module<Test>;
 
 	// This function basically just builds a genesis storage key/value store according to
 	// our desired mockup.
@@ -319,8 +324,49 @@ mod tests {
 		});
 	}
 
+	//test revoke function work or not
 	#[test]
 	fn owned_kitties_can_remove_values() {
-		// 作业
+		new_test_ext().execute_with(||{
+			OwnedKittiesTest::append(&0,1);
+			OwnedKittiesTest::append(&0,2);
+			OwnedKittiesTest::append(&0,3);
+			assert_eq!(OwnedKittiesTest::get(&(0,Some(1))), Some(KittyLinkedItem{
+				prev:None,
+				next:Some(2),
+			}));
+			OwnedKittiesTest::remove(&0,2);
+			assert_eq!(OwnedKittiesTest::get(&(0,Some(1))), Some(KittyLinkedItem{
+				prev:None,
+				next:Some(3),
+			}));
+			assert_eq!(OwnedKittiesTest::get(&(0,Some(2))), None);
+
+
+
+
+		});
+	}
+
+	//test transfer function work or not
+	#[test]
+	fn transfer_works(){
+		new_test_ext().execute_with(|| {
+			OwnedKittiesTest::append(&0, 1);
+			assert_eq!(OwnedKittiesTest::get(&(0,None)), Some(KittyLinkedItem{
+				prev:Some(1),
+				next:Some(1),
+			}));
+			let to :<Test as system::Trait>::AccountId = 1;
+			let _ =KittiesModule::transfer(Origin::signed(0),to,1);
+			assert_eq!(OwnedKittiesTest::get(&(1,None)), Some(KittyLinkedItem{
+				prev:Some(1), 
+				next:Some(1),
+			}));
+			assert_eq!(OwnedKittiesTest::get(&(0,None)), Some(KittyLinkedItem{
+				prev:None,
+				next:None,
+			}));
+		});
 	}
 }
