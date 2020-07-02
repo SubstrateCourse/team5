@@ -5,6 +5,8 @@ use frame_support::{decl_module, decl_storage, decl_error, ensure, StorageValue,
 use sp_io::hashing::blake2_128;
 use frame_system::ensure_signed;
 use sp_runtime::{DispatchError, DispatchResult};
+use sp_runtime::traits::StaticLookup;
+
 
 #[derive(Encode, Decode)]
 pub struct Kitty(pub [u8; 16]);
@@ -31,6 +33,7 @@ decl_error! {
 		KittiesCountOverflow,
 		InvalidKittyId,
 		RequireDifferentParent,
+		UserNotHaveTheKitty,
 	}
 }
 
@@ -60,6 +63,37 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 
 			Self::do_breed(sender, kitty_id_1, kitty_id_2)?;
+		}
+
+		#[weight = 0]
+		pub fn transfer(origin, user_kitty_id: u32, to: <T::Lookup as StaticLookup>::Source) {
+			let sender = ensure_signed(origin)?;
+
+			let from_user_kitties_count = OwnedKittiesCount::<T>::get(&sender);
+			ensure!(from_user_kitties_count > user_kitty_id, Error::<T>::UserNotHaveTheKitty);
+
+			// check to user kitties will not flow
+			let to = T::Lookup::lookup(to)?;
+			let to_user_kitties_count = OwnedKittiesCount::<T>::get(&to);
+			if to_user_kitties_count == u32::max_value() {
+				return Err(Error::<T>::KittiesCountOverflow.into());
+			}
+
+			// remove the from user kitty
+			let kitty_id = OwnedKitties::<T>::get((&sender, user_kitty_id));
+			OwnedKittiesCount::<T>::insert(&sender, from_user_kitties_count - 1);
+			if user_kitty_id + 1 != from_user_kitties_count {
+				// move the last user kitty to the removed position
+				let from_last_kitty_id = OwnedKitties::<T>::get((&sender, from_user_kitties_count - 1));
+				OwnedKitties::<T>::remove((&sender, from_user_kitties_count - 1));
+				OwnedKitties::<T>::insert((&sender, user_kitty_id), from_last_kitty_id);
+			} else {
+				OwnedKitties::<T>::remove((&sender, user_kitty_id));
+			}
+
+			// add the to user kitty
+			OwnedKittiesCount::<T>::insert(&to, to_user_kitties_count + 1);
+			OwnedKitties::<T>::insert((&to, to_user_kitties_count + 1), kitty_id);
 		}
 	}
 }
