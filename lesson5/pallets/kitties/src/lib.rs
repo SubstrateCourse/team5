@@ -5,6 +5,8 @@ use frame_support::{decl_module, decl_storage, decl_error, ensure, StorageValue,
 use sp_io::hashing::blake2_128;
 use frame_system::ensure_signed;
 use sp_runtime::{DispatchError, DispatchResult};
+use sp_runtime::traits::StaticLookup;
+
 
 #[derive(Encode, Decode)]
 pub struct Kitty(pub [u8; 16]);
@@ -31,6 +33,7 @@ decl_error! {
 		KittiesCountOverflow,
 		InvalidKittyId,
 		RequireDifferentParent,
+		UserNotHaveTheKitty,
 	}
 }
 
@@ -51,6 +54,7 @@ decl_module! {
 			let kitty = Kitty(dna);
 
 			// 作业：补完剩下的部分
+			Self::insert_kitty(sender, kitty_id, kitty);
 		}
 
 		/// Breed kitties
@@ -59,6 +63,37 @@ decl_module! {
 			let sender = ensure_signed(origin)?;
 
 			Self::do_breed(sender, kitty_id_1, kitty_id_2)?;
+		}
+
+		#[weight = 0]
+		pub fn transfer(origin, user_kitty_id: u32, to: <T::Lookup as StaticLookup>::Source) {
+			let sender = ensure_signed(origin)?;
+
+			let from_user_kitties_count = OwnedKittiesCount::<T>::get(&sender);
+			ensure!(from_user_kitties_count > user_kitty_id, Error::<T>::UserNotHaveTheKitty);
+
+			// check to user kitties will not flow
+			let to = T::Lookup::lookup(to)?;
+			let to_user_kitties_count = OwnedKittiesCount::<T>::get(&to);
+			if to_user_kitties_count == u32::max_value() {
+				return Err(Error::<T>::KittiesCountOverflow.into());
+			}
+
+			// remove the from user kitty
+			let kitty_id = OwnedKitties::<T>::get((&sender, user_kitty_id));
+			OwnedKittiesCount::<T>::insert(&sender, from_user_kitties_count - 1);
+			if user_kitty_id + 1 != from_user_kitties_count {
+				// move the last user kitty to the removed position
+				let from_last_kitty_id = OwnedKitties::<T>::get((&sender, from_user_kitties_count - 1));
+				OwnedKitties::<T>::remove((&sender, from_user_kitties_count - 1));
+				OwnedKitties::<T>::insert((&sender, user_kitty_id), from_last_kitty_id);
+			} else {
+				OwnedKitties::<T>::remove((&sender, user_kitty_id));
+			}
+
+			// add the to user kitty
+			OwnedKittiesCount::<T>::insert(&to, to_user_kitties_count + 1);
+			OwnedKitties::<T>::insert((&to, to_user_kitties_count + 1), kitty_id);
 		}
 	}
 }
@@ -70,6 +105,12 @@ fn combine_dna(dna1: u8, dna2: u8, selector: u8) -> u8 {
 impl<T: Trait> Module<T> {
 	fn random_value(sender: &T::AccountId) -> [u8; 16] {
 		// 作业：完成方法
+		let payload = (
+			<pallet_randomness_collective_flip::Module<T> as Randomness<T::Hash>>::random_seed(),
+			sender,
+			<frame_system::Module<T>>::extrinsic_index(),
+		);
+		payload.using_encoded(blake2_128)
 	}
 
 	fn next_kitty_id() -> sp_std::result::Result<u32, DispatchError> {
@@ -82,6 +123,11 @@ impl<T: Trait> Module<T> {
 
 	fn insert_kitty(owner: T::AccountId, kitty_id: u32, kitty: Kitty) {
 		// 作业：完成方法
+		Kitties::insert(kitty_id, kitty);
+		KittiesCount::put(kitty_id + 1);
+		let user_kitties_count = OwnedKittiesCount::<T>::get(&owner);
+		OwnedKittiesCount::<T>::insert(&owner, user_kitties_count + 1);
+		OwnedKitties::<T>::insert((&owner, user_kitties_count), kitty_id);
 	}
 
 	fn do_breed(sender: T::AccountId, kitty_id_1: u32, kitty_id_2: u32) -> DispatchResult {
