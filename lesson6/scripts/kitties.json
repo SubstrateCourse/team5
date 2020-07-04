@@ -1,0 +1,8 @@
+{
+    "KittyIndex": "u32",
+    "Kitty": "[u8; 16]",
+    "KittyLinkedItem":{
+        "prev": "Option<KittyIndex>",
+        "next": "Option<KittyIndex>"
+    }
+}
