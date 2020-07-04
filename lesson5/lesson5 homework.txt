@@ -1,0 +1,53 @@
+我会把OwnedKitties 改成 map   AccountId => Vec<kitty_id>
+
+//transfer kityy to receiver
+fn transfer(origin, receiver:AccountId, kitty_id:u32){
+    let owner = ensure_signed!origin)?;
+
+    //get the owner's all kitties
+    let cur_kitties = OwnedKitties::<T>::get(&owner);
+    let cur_kitties_count = cur_kitties.len();
+
+    //find the target kitty and remove it update the map
+    if let Ok(index) = cur_kitties.binary_search(&kitty_id){
+        cur_kitties.remove(index);
+        OwnedKitties::<T>::insert(&owner,cur_kitties);
+    }
+    else {
+        return Err(Error::<T>::NoSuchKitty.into());
+    }
+
+    //update the owner's kitty_count and the receiver's map
+    OwnedKittiesCount::<T>::put(cur_kitties_count -1 );
+    let mut receiver_kitties =OwnedKitties::<T>::get(&receiver);
+    let mut receiver_kitties_count =receiver_kitties.len()
+    receiver_kitties.push(kitty_id);
+    OwnedKitties::<T>::insert(&receiver,receiver_kitties);
+    OwnedKitties::<T>::put(receiver_kitties_count + 1);
+
+
+}
+
+对于买卖可以新增一个KittyPrice map  kitty_id => price
+
+//set kitty's price
+fn set_price (origin,kitty_id,price) {
+    let sender = ensure_signed(origin)?;
+    ensuer!(OwnedKitties::<T>::get(&sender).contains(kitty_id),Error::<T>::NoSuchKitty);
+    KittyPrice::insert(kitty_id,price);
+}
+
+//somebody bought a kitty
+fn bought_cat(origin,kitty_id){
+    
+    let buyer =ensure_signed(origin)?;
+
+    //ensuer the kitty is for sale 
+    ensuer!(KittyPrice::contains_key(kitty_id));
+    
+    //ensuer the buyer has enough money to buy the kitty
+    ensuer!(buyer.freebalance() >= kittyPrice::get(kitty_id));
+
+    //do as transfer kitty to buyer
+    Self::transfer(buyer, kitty_id);
+}
