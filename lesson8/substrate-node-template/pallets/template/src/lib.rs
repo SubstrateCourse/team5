@@ -8,9 +8,18 @@
 
 /// For more guidance on Substrate FRAME, see the example pallet
 /// https://github.com/paritytech/substrate/blob/master/frame/example/src/lib.rs
-
-use frame_support::{debug, decl_module, decl_storage, decl_event, decl_error, dispatch};
-use frame_system::{self as system, ensure_signed};
+use frame_support::{
+	debug, decl_module, decl_storage, decl_event,
+	dispatch
+};
+use frame_system::{
+	self as system, ensure_signed,
+	offchain::{
+		AppCrypto, CreateSignedTransaction, SendSignedTransaction, Signer
+	},
+};
+use sp_core::crypto::KeyTypeId;
+use sp_std::prelude::*;
 
 #[cfg(test)]
 mod mock;
@@ -18,12 +27,45 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-/// The pallet's configuration trait.
-pub trait Trait: system::Trait {
-	// Add other types and constants required to configure this pallet.
+pub const KEY_TYPE: KeyTypeId = KeyTypeId(*b"demo");
 
+/// The pallet's configuration trait.
+pub trait Trait: system::Trait + CreateSignedTransaction<Call<Self>> {
 	/// The overarching event type.
 	type Event: From<Event<Self>> + Into<<Self as system::Trait>::Event>;
+
+	// Add other types and constants required to configure this pallet.
+	type AuthorityId: AppCrypto<Self::Public, Self::Signature>;
+	type Call: From<Call<Self>>;
+}
+
+pub mod crypto {
+	use crate::KEY_TYPE;
+	use sp_core::sr25519::Signature as Sr25519Signature;
+	use sp_runtime::{
+		app_crypto::{app_crypto, sr25519},
+		traits::Verify,
+		MultiSignature, MultiSigner,
+	};
+
+	app_crypto!(sr25519, KEY_TYPE);
+
+	pub struct AuthId;
+	// implemented for ocw-runtime
+	impl frame_system::offchain::AppCrypto<MultiSigner, MultiSignature> for AuthId {
+		type RuntimeAppPublic = Public;
+		type GenericSignature = sp_core::sr25519::Signature;
+		type GenericPublic = sp_core::sr25519::Public;
+	}
+
+	// implemented for mock runtime in test
+	impl frame_system::offchain::AppCrypto<<Sr25519Signature as Verify>::Signer, Sr25519Signature>
+	for AuthId
+	{
+		type RuntimeAppPublic = Public;
+		type GenericSignature = sp_core::sr25519::Signature;
+		type GenericPublic = sp_core::sr25519::Public;
+	}
 }
 
 // This pallet's storage items.
@@ -49,25 +91,10 @@ decl_event!(
 	}
 );
 
-// The pallet's errors
-decl_error! {
-	pub enum Error for Module<T: Trait> {
-		/// Value was None
-		NoneValue,
-		/// Value reached maximum and cannot be incremented further
-		StorageOverflow,
-	}
-}
-
 // The pallet's dispatchable functions.
 decl_module! {
 	/// The module declaration.
 	pub struct Module<T: Trait> for enum Call where origin: T::Origin {
-		// Initializing errors
-		// this includes information about your errors in the node's metadata.
-		// it is needed only if you are using errors in your pallet
-		type Error = Error<T>;
-
 		// Initializing events
 		// this is needed only if you are using events in your pallet
 		fn deposit_event() = default;
