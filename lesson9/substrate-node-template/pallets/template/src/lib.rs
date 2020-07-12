@@ -35,7 +35,6 @@ use sp_std;
 //   with serde(features `std`) and alt_serde(features `no_std`).
 use alt_serde::{Deserialize, Deserializer};
 use codec::{Encode, Decode};
-use lite_json::json::JsonValue;
 
 #[cfg(test)]
 mod mock;

@@ -21,8 +21,6 @@ use sp_runtime::{
 	testing::{Header, TestXt},
 	traits::{BlakeTwo256, IdentityLookup, Verify},
 	Perbill,
-	app_crypto::{app_crypto},
-	MultiSignature, MultiSigner,
 };
 use frame_system as system;
 use crate as template;

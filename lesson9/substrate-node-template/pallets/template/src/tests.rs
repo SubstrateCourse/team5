@@ -2,7 +2,6 @@
 
 use crate::{*, mock::*};
 use frame_support::{assert_ok};
-use codec::{Decode};
 
 #[test]
 fn test_onchain() {
