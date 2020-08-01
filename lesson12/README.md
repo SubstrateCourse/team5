@@ -6,10 +6,33 @@
 
 Note: 上传benchmark运行结果的命令行截图和最终的可调用函数代码片段（包含权重设置）。
 
+a. 编译 benchmark
+![image](./hw/1.jpg)
+
+b. 运行结果
+![image](./hw/2.jpg)
 
 2. 选择 node-template 或者其它节点程序，生成 Chain Spec 文件（两种格式都需要）；
 
 Note: 上传 Chain Spec 文件即可
+
+a. 安装subkey
+![image](./hw/3.jpg)
+
+b. 生成sr25519私钥
+![image](./hw/4.jpg)
+
+c. 生成ed25519私钥
+![image](./hw/5.jpg)
+
+d. 整理秘钥对
+![image](./hw/6.jpg)
+
+e. 生成Spec.json
+![image](./hw/7.jpg)
+
+f. 生成SpecRaw.json
+![image](./hw/8.jpg)
 
 3.（附加题）根据 Chain Spec，部署公开测试网络。
 
