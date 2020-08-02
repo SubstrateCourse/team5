@@ -6,10 +6,13 @@
 
 Note: 上传benchmark运行结果的命令行截图和最终的可调用函数代码片段（包含权重设置）。
 
+![原图](images/1.png)
 
 2. 选择 node-template 或者其它节点程序，生成 Chain Spec 文件（两种格式都需要）；
 
 Note: 上传 Chain Spec 文件即可
+`/Users/by/ws/team5/lesson12/substrate-node-template/insect_staging.json`
+`/Users/by/ws/team5/lesson12/substrate-node-template/insect_staging_raw.json`
 
 3.（附加题）根据 Chain Spec，部署公开测试网络。
 
